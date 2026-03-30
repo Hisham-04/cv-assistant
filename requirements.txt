@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+langchain-ollama
+langgraph
+langchain-core
+duckduckgo-search
+pymupdf
+pydantic

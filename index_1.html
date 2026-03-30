@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #f5f5f3;
+    --white:   #ffffff;
+    --border:  #e2e2de;
+    --text:    #1a1a1a;
+    --muted:   #8a8a8a;
+    --accent:  #2563eb;
+    --radius:  10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  header {
+    margin-bottom: 40px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  /* upload */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: border-color .2s, background .2s;
+  }
+
+  .upload-zone:hover { border-color: var(--accent); background: #f0f6ff; }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .upload-zone p      { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .upload-zone strong { color: var(--text); font-size: 14px; font-weight: 500; }
+
+  #file-name {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--accent);
+    display: none;
+  }
+
+  /* fields */
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 20px 0 6px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  input[type="text"]:focus  { border-color: var(--accent); background: #fff; }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  /* button */
+  button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 11px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity .15s;
+  }
+
+  button:hover    { opacity: .88; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+
+  /* error */
+  #error {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-size: 13px;
+  }
+
+  /* result */
+  #result-card { display: none; }
+
+  .result-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  #result-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .copy-btn {
+    width: auto;
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>CV Assistant</h1>
+    <p class="subtitle">Upload your CV and get tailored improvement suggestions.</p>
+  </header>
+
+  <div class="card">
+    <div class="upload-zone" id="drop-zone">
+      <input type="file" id="cv-file" accept=".pdf">
+      <strong>Upload your CV</strong>
+      <p>PDF only · Click or drag to upload</p>
+      <div id="file-name"></div>
+    </div>
+
+    <label for="job-title">Target Job Title</label>
+    <input type="text" id="job-title" placeholder="e.g. Data Scientist Intern, ML Engineer...">
+
+    <button id="analyze-btn" onclick="analyze()">
+      <span id="btn-text">Analyze</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+
+    <div id="error"></div>
+  </div>
+
+  <div class="card" id="result-card">
+    <div class="result-label">Suggestions</div>
+    <div id="result-text"></div>
+    <button class="copy-btn" onclick="copyResult()">Copy</button>
+  </div>
+
+</div>
+<script>
+  const fileInput = document.getElementById('cv-file')
+  const dropZone  = document.getElementById('drop-zone')
+  const fileName  = document.getElementById('file-name')
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) showFile(fileInput.files[0].name)
+  })
+
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)' })
+  dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '')
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault()
+    dropZone.style.borderColor = ''
+    if (e.dataTransfer.files[0]) {
+      fileInput.files = e.dataTransfer.files
+      showFile(e.dataTransfer.files[0].name)
+    }
+  })
+
+  function showFile(name) {
+    fileName.textContent    = '📎 ' + name
+    fileName.style.display  = 'block'
+  }
+
+  async function analyze() {
+    const file     = fileInput.files[0]
+    const jobTitle = document.getElementById('job-title').value.trim()
+    const btn      = document.getElementById('analyze-btn')
+    const spinner  = document.getElementById('spinner')
+    const btnText  = document.getElementById('btn-text')
+    const errorDiv = document.getElementById('error')
+    const resultCard = document.getElementById('result-card')
+
+    errorDiv.style.display = 'none'
+
+    if (!file)     { showError('Please upload a PDF file.'); return }
+    if (!jobTitle) { showError('Please enter a job title.'); return }
+
+    btn.disabled          = true
+    spinner.style.display = 'block'
+    btnText.textContent   = 'Analyzing...'
+
+    const form = new FormData()
+    form.append('file', file)
+    form.append('job_title', jobTitle)
+
+    try {
+      const res  = await fetch('/analyze', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Something went wrong')
+      document.getElementById('result-text').textContent = data.improvements
+      resultCard.style.display = 'block'
+      resultCard.scrollIntoView({ behavior: 'smooth' })
+    } catch (err) {
+      showError(err.message)
+    } finally {
+      btn.disabled          = false
+      spinner.style.display = 'none'
+      btnText.textContent   = 'Analyze'
+    }
+  }
+
+  function showError(msg) {
+    const e = document.getElementById('error')
+    e.textContent   = msg
+    e.style.display = 'block'
+  }
+
+  function copyResult() {
+    navigator.clipboard.writeText(document.getElementById('result-text').textContent).then(() => {
+      const btn = document.querySelector('.copy-btn')
+      btn.textContent = 'Copied!'
+      setTimeout(() => btn.textContent = 'Copy', 2000)
+    })
+  }
+</script>
+</body>
+</html>
